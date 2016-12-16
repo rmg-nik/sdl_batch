@@ -161,6 +161,9 @@ static void D3D_DestroyTexture(SDL_Renderer * renderer,
                                SDL_Texture * texture);
 static void D3D_DestroyRenderer(SDL_Renderer * renderer);
 
+static int D3D_CreateBatch(SDL_Renderer *renderer, SDL_Batch *batch, SDL_Texture *texture, const SDL_Rect *srcrect, const SDL_Rect *dstrect,
+                           const SDL_Color *colors, const float *angles, unsigned int size, SDL_bool is_one_src);
+static int D3D_RenderBatch(SDL_Renderer *renderer, SDL_Batch *batch);
 
 SDL_RenderDriver D3D_RenderDriver = {
     D3D_CreateRenderer,
@@ -172,6 +175,19 @@ SDL_RenderDriver D3D_RenderDriver = {
      0,
      0}
 };
+
+#ifdef SDL_USE_BATCH
+#define D3D_VERTEX_MAX_VERTICES 4096
+#else
+#define D3D_VERTEX_MAX_VERTICES 4
+#endif
+
+typedef struct
+{
+    float x, y, z;
+    DWORD color;
+    float u, v;
+} Vertex;
 
 typedef struct
 {
@@ -188,6 +204,7 @@ typedef struct
     IDirect3DSurface9 *currentRenderTarget;
     void* d3dxDLL;
     LPDIRECT3DPIXELSHADER9 ps_yuv;
+    Vertex* vertices;
 } D3D_RenderData;
 
 typedef struct
@@ -213,13 +230,6 @@ typedef struct
     int pitch;
     SDL_Rect locked_rect;
 } D3D_TextureData;
-
-typedef struct
-{
-    float x, y, z;
-    DWORD color;
-    float u, v;
-} Vertex;
 
 static int
 D3D_SetError(const char *prefix, HRESULT result)
@@ -534,7 +544,16 @@ D3D_CreateRenderer(SDL_Window * window, Uint32 flags)
         return NULL;
     }
 
+    data->vertices = (Vertex* )SDL_malloc(D3D_VERTEX_MAX_VERTICES * sizeof(Vertex));
+    if (!data) {        
+        SDL_free(renderer);
+        SDL_free(data);
+        SDL_OutOfMemory();
+        return NULL;
+    }
+
     if (!D3D_LoadDLL(&data->d3dDLL, &data->d3d)) {
+        SDL_free(data->vertices);
         SDL_free(renderer);
         SDL_free(data);
         SDL_SetError("Unable to create Direct3D interface");
@@ -560,6 +579,9 @@ D3D_CreateRenderer(SDL_Window * window, Uint32 flags)
     renderer->RenderPresent = D3D_RenderPresent;
     renderer->DestroyTexture = D3D_DestroyTexture;
     renderer->DestroyRenderer = D3D_DestroyRenderer;
+
+    renderer->RenderBatch = D3D_RenderBatch;
+
     renderer->info = D3D_RenderDriver.info;
     renderer->info.flags = (SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
     renderer->driverdata = data;
@@ -1597,7 +1619,7 @@ D3D_RenderCopy(SDL_Renderer * renderer, SDL_Texture * texture,
     float minx, miny, maxx, maxy;
     float minu, maxu, minv, maxv;
     DWORD color;
-    Vertex vertices[4];
+    Vertex* vertices = data->vertices;
     HRESULT result;
 
     if (D3D_ActivateRenderer(renderer) < 0) {
@@ -1706,7 +1728,7 @@ D3D_RenderCopyEx(SDL_Renderer * renderer, SDL_Texture * texture,
     float minu, maxu, minv, maxv;
     float centerx, centery;
     DWORD color;
-    Vertex vertices[4];
+    Vertex* vertices = data->vertices;
     Float4X4 modelMatrix;
     HRESULT result;
 
@@ -1936,6 +1958,9 @@ D3D_DestroyRenderer(SDL_Renderer * renderer)
     D3D_RenderData *data = (D3D_RenderData *) renderer->driverdata;
 
     if (data) {
+        if (data->vertices) {
+            SDL_free(data->vertices);
+        }
         /* Release the render target */
         if (data->defaultRenderTarget) {
             IDirect3DSurface9_Release(data->defaultRenderTarget);
@@ -1959,6 +1984,189 @@ D3D_DestroyRenderer(SDL_Renderer * renderer)
     }
     SDL_free(renderer);
 }
+
+static int 
+D3D_CreateBatch(SDL_Renderer *renderer, SDL_Batch *batch, SDL_Texture *texture, const SDL_Rect *srcrect, const SDL_Rect *dstrect, 
+                const SDL_Color *colors, const float *angles, unsigned int size, SDL_bool is_one_src)
+{
+   
+
+    return 0;
+}
+
+static int
+D3D_RenderBatch(SDL_Renderer *renderer, SDL_Batch *batch)
+{
+    if (batch == NULL)
+    {
+        SDL_SetError("D3D_RenderBatch: batch is NULL");
+        return -1;
+    }
+    
+    D3D_RenderData *data = (D3D_RenderData *)renderer->driverdata;
+    Vertex* vertices = data->vertices;
+    D3D_TextureData *texturedata;
+    LPDIRECT3DPIXELSHADER9 shader = NULL;
+   
+    HRESULT result;
+
+    if (D3D_ActivateRenderer(renderer) < 0) {
+        return -1;
+    }
+
+    texturedata = (D3D_TextureData *)batch->texture->driverdata;
+    if (!texturedata) {
+        SDL_SetError("D3D_RenderBatch: Texture is not currently available");
+        return -1;
+    }
+
+    D3D_SetBlendMode(data, batch->texture->blendMode);
+
+    const unsigned int size = batch->size;
+    SDL_Texture* texture = batch->texture;
+    SDL_Rect* srcrect = batch->sources;
+    float* angles = (float*)batch->angles;
+    SDL_Rect* dstrect = (SDL_Rect*)batch->destinations;
+    SDL_Color* colors = batch->colors;
+
+    float minu, maxu, minv, maxv;
+    float x, y, x1, x2, y1, y2, ax, ay, bx, by, cx, cy, dx, dy, cr, sr;
+    DWORD color; 
+
+    for (unsigned int i = 0; i < size; ++i)
+    {
+        minu = (float)srcrect->x / texture->w;
+        maxu = (float)(srcrect->x + srcrect->w) / texture->w;
+        minv = (float)srcrect->y / texture->h;
+        maxv = (float)(srcrect->y + srcrect->h) / texture->h;
+
+        x = dstrect->x - 0.5f + dstrect->w / 2;
+        y = dstrect->y - 0.5f + dstrect->h / 2;
+        x1 = dstrect->x - 0.5f - x;
+        y1 = dstrect->y - 0.5f - y;
+        x2 = dstrect->x + dstrect->w - 0.5f - x;
+        y2 = dstrect->y + dstrect->h - 0.5f - y;
+
+        ++dstrect;
+
+        //TODO: we never get into second branch
+        if (angles)
+        {
+            float r = (*angles) * 3.14159f / 180.0f;
+            cr = cosf(r);
+            sr = sinf(r);
+
+            ax = x1 * cr - y1 * sr + x;
+            ay = x1 * sr + y1 * cr + y;
+            bx = x2 * cr - y1 * sr + x;
+            by = x2 * sr + y1 * cr + y;
+            cx = x2 * cr - y2 * sr + x;
+            cy = x2 * sr + y2 * cr + y;
+            dx = x1 * cr - y2 * sr + x;
+            dy = x1 * sr + y2 * cr + y;
+
+            ++angles;
+        }
+        else
+        {
+            ax = x1 + x;
+            ay = y1 + y;
+            bx = x2 + x;
+            by = y1 + y;
+            cx = x2 + x;
+            cy = y2 + y;
+            dx = x1 + x;
+            dy = y2 + y;
+        }
+
+        color = D3DCOLOR_ARGB(colors->a, colors->r, colors->g, colors->b);
+        ++colors;
+
+        // 0 == 5, 1, 2 == 3, 4; 0, 1, 2; 3, 4, 5;
+        vertices[0 + i * 6].u = minu;
+        vertices[0 + i * 6].v = minv;
+        vertices[0 + i * 6].x = ax;
+        vertices[0 + i * 6].y = ay;
+        vertices[0 + i * 6].z = 0.0f;
+        vertices[0 + i * 6].color = color;
+
+        vertices[1 + i * 6].u = maxu;
+        vertices[1 + i * 6].v = minv;
+        vertices[1 + i * 6].x = bx;
+        vertices[1 + i * 6].y = by;
+        vertices[1 + i * 6].z = 0.0f;
+        vertices[1 + i * 6].color = color;
+
+        vertices[2 + i * 6].u = maxu;
+        vertices[2 + i * 6].v = maxv;
+        vertices[2 + i * 6].x = cx;
+        vertices[2 + i * 6].y = cy;
+        vertices[2 + i * 6].z = 0.0f;
+        vertices[2 + i * 6].color = color;
+
+        vertices[3 + i * 6].u = maxu;
+        vertices[3 + i * 6].v = maxv;
+        vertices[3 + i * 6].x = cx;
+        vertices[3 + i * 6].y = cy;
+        vertices[3 + i * 6].z = 0.0f;
+        vertices[3 + i * 6].color = color;
+
+        vertices[4 + i * 6].u = minu;
+        vertices[4 + i * 6].v = maxv;
+        vertices[4 + i * 6].x = dx;
+        vertices[4 + i * 6].y = dy;
+        vertices[4 + i * 6].z = 0.0f;
+        vertices[4 + i * 6].color = color;
+
+        vertices[5 + i * 6].u = minu;
+        vertices[5 + i * 6].v = minv;
+        vertices[5 + i * 6].x = ax;
+        vertices[5 + i * 6].y = ay;
+        vertices[5 + i * 6].z = 0.0f;
+        vertices[5 + i * 6].color = color;
+    }
+
+    D3D_UpdateTextureScaleMode(data, texturedata, 0);
+
+    if (D3D_BindTextureRep(data->device, &texturedata->texture, 0) < 0) {
+        return -1;
+    }
+
+    if (texturedata->yuv) {
+        shader = data->ps_yuv;
+
+        D3D_UpdateTextureScaleMode(data, texturedata, 1);
+        D3D_UpdateTextureScaleMode(data, texturedata, 2);
+
+        if (D3D_BindTextureRep(data->device, &texturedata->utexture, 1) < 0) {
+            return -1;
+        }
+        if (D3D_BindTextureRep(data->device, &texturedata->vtexture, 2) < 0) {
+            return -1;
+        }
+    }
+
+    if (shader) {
+        result = IDirect3DDevice9_SetPixelShader(data->device, shader);
+        if (FAILED(result)) {
+            return D3D_SetError("SetShader()", result);
+        }
+    }
+    result =
+        IDirect3DDevice9_DrawPrimitiveUP(data->device, D3DPT_TRIANGLELIST, batch->size * 2, vertices, sizeof(Vertex));
+    if (FAILED(result)) {
+        return D3D_SetError("DrawPrimitiveUP()", result);
+    }
+    if (shader) {
+        result = IDirect3DDevice9_SetPixelShader(data->device, NULL);
+        if (FAILED(result)) {
+            return D3D_SetError("SetShader()", result);
+        }
+    }
+
+    return 0;
+}
+
 #endif /* SDL_VIDEO_RENDER_D3D && !SDL_RENDER_DISABLED */
 
 #ifdef __WIN32__

@@ -264,6 +264,36 @@ static const char *shader_source[NUM_SHADERS][2] =
 "    gl_FragColor = vec4(rgb, 1.0) * v_color;\n"
 "}"
     },
+
+    /* SHADER_RGB_COLOR */
+    {
+        /* vertex shader */
+"layout (location = 0) in vec2 position;\n"
+"layout (location = 1) in vec2 texCoord;\n"
+"layout (location = 2) in vec4 color;\n"
+"\n"
+"out vec4 Color;\n"
+"out vec2 TexCoord;\n"
+"\n"
+"void main()\n"
+"{\n"
+"	gl_Position = vec4(position, 1.0f, 1.0f);\n"
+"   TexCoord = texCoord;\n"
+"   Color = color;\n"
+"}\n",
+    /* fragment shader */
+"in vec4 Color;\n"
+"in vec2 TexCoord;\n"
+"\n"
+"out vec4 color;\n"
+"\n"
+"uniform sampler2D ourTexture;\n"
+"\n"
+"void main()\n"
+"{\n"
+"    color = Color * texture(ourTexture, TexCoord); \n"
+"}\n"
+    }
 };
 
 static SDL_bool
