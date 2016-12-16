@@ -172,11 +172,7 @@ typedef enum
 
 typedef enum
 {
-#ifdef SDL_USE_BATCH
-    GLES2_VERTEX_MAX_VERTICES = 6 * 2048, //6 vertices per one batch element
-#else
-    GLES2_VERTEX_MAX_VERTICES = 4,
-#endif
+    GLES2_VERTEX_MAX_VERTICES = MAX_VERTICES_COUNT,
     GLES2_VERTEX_STRIDE = 11,
     GLES2_VERTEX_POSITION_OFFSET = 0,
     GLES2_VERTEX_TEXTURE_OFFSET = 2,
@@ -222,10 +218,6 @@ typedef struct GLES2_DriverContext
     GLES2_ProgramCacheEntry *current_program;
     Uint8 clear_r, clear_g, clear_b, clear_a;
 
-#if SDL_GLES2_USE_VBOS
-    GLuint vertex_buffers[4];
-    GLsizeiptr vertex_buffer_size[4];
-#endif
     GLuint common_VBO;
     GLfloat* vertices;
 } GLES2_DriverContext;
@@ -1456,68 +1448,58 @@ GLES2_SetDrawingState(SDL_Renderer * renderer)
     return 0;
 }
 
-static int
-GLES2_UpdateVertexBuffer(SDL_Renderer *renderer, GLES2_Attribute attr,
-                         const void *vertexData, size_t dataSizeInBytes)
+
+static void GLES2_FlushVertices(SDL_Renderer *renderer, const int vertices_count, const void* vertices, int type)
 {
     GLES2_DriverContext *data = (GLES2_DriverContext *)renderer->driverdata;
-
-    int size = 0;
-    int pos = 0;
-    switch (attr)
-    {
-    case GLES2_ATTRIBUTE_ANGLE:     pos = GLES2_VERTEX_ANGLE_OFFSET; size = 1; break;
-    case GLES2_ATTRIBUTE_POSITION:  pos = GLES2_VERTEX_POSITION_OFFSET; size = 2; break;
-    case GLES2_ATTRIBUTE_TEXCOORD:  pos = GLES2_VERTEX_TEXTURE_OFFSET; size = 2; break;
-    case GLES2_ATTRIBUTE_CENTER:    pos = GLES2_VERTEX_CENTER_OFFSET; size = 2; break;
-    case GLES2_ATTRIBUTE_COLOR:     pos = GLES2_VERTEX_COLOR_OFFSET; size = 4; break;
-    }
-#if !SDL_GLES2_USE_VBOS
-    data->glVertexAttribPointer(attr, size, GL_FLOAT, GL_FALSE, GLES2_VERTEX_STRIDE * sizeof(GLfloat), (GLvoid*)((GLfloat*)vertexData + pos));
-#else
-    if (!data->vertex_buffers[attr]) {
-        data->glGenBuffers(1, &data->vertex_buffers[attr]);
-    }
-
-    data->glBindBuffer(GL_ARRAY_BUFFER, data->vertex_buffers[attr]);
-
-    if (data->vertex_buffer_size[attr] < dataSizeInBytes) {
-        data->glBufferData(GL_ARRAY_BUFFER, dataSizeInBytes, vertexData, GL_STREAM_DRAW);
-        data->vertex_buffer_size[attr] = dataSizeInBytes;
-    } else {
-        data->glBufferSubData(GL_ARRAY_BUFFER, 0, dataSizeInBytes, vertexData);
-    }
-
-    data->glVertexAttribPointer(attr, attr == GLES2_ATTRIBUTE_ANGLE ? 1 : 2, GL_FLOAT, GL_FALSE, 0, 0);
+    GLfloat* ptr = vertices;
+#if SDL_GLES2_USE_VBOS
+    data->glBindBuffer(GL_ARRAY_BUFFER, data->common_VBO);
+    data->glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * vertices_count * GLES2_VERTEX_STRIDE, vertices);
+    ptr = 0;
 #endif
 
-    return 0;
+    data->glVertexAttribPointer(GLES2_ATTRIBUTE_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * GLES2_VERTEX_STRIDE, (void*)(ptr + GLES2_VERTEX_POSITION_OFFSET));
+    data->glVertexAttribPointer(GLES2_ATTRIBUTE_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * GLES2_VERTEX_STRIDE, (void*)(ptr + GLES2_VERTEX_TEXTURE_OFFSET));
+    data->glVertexAttribPointer(GLES2_ATTRIBUTE_ANGLE, 1, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * GLES2_VERTEX_STRIDE, (void*)(ptr + GLES2_VERTEX_ANGLE_OFFSET));
+    data->glVertexAttribPointer(GLES2_ATTRIBUTE_CENTER, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * GLES2_VERTEX_STRIDE, (void*)(ptr + GLES2_VERTEX_CENTER_OFFSET));
+    data->glVertexAttribPointer(GLES2_ATTRIBUTE_COLOR, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * GLES2_VERTEX_STRIDE, (void*)(ptr + GLES2_VERTEX_COLOR_OFFSET));
+
+    data->glDrawArrays(type, 0, vertices_count);
+
+#if SDL_GLES2_USE_VBOS
+    data->glBindBuffer(GL_ARRAY_BUFFER, 0);
+#endif
 }
 
 static int
 GLES2_RenderDrawPoints(SDL_Renderer *renderer, const SDL_FPoint *points, int count)
 {
     GLES2_DriverContext *data = (GLES2_DriverContext *)renderer->driverdata;
-    GLfloat *vertices;
+    GLfloat *vertices = data->vertices;
     int idx;
 
     if (GLES2_SetDrawingState(renderer) < 0) {
         return -1;
     }
 
-    /* Emit the specified vertices as points */
-    vertices = SDL_stack_alloc(GLfloat, count * 2);
+    int vertex_index = 0;
     for (idx = 0; idx < count; ++idx) {
         GLfloat x = points[idx].x + 0.5f;
         GLfloat y = points[idx].y + 0.5f;
 
-        vertices[idx * 2] = x;
-        vertices[(idx * 2) + 1] = y;
+        vertices[GLES2_VERTEX_POS_X + vertex_index * GLES2_VERTEX_STRIDE] = x;
+        vertices[GLES2_VERTEX_POS_Y + vertex_index * GLES2_VERTEX_STRIDE] = y;
+        ++vertex_index;
+        if (vertex_index == GLES2_VERTEX_MAX_VERTICES)
+        {
+            GLES2_FlushVertices(renderer, vertex_index, vertices, GL_POINTS);
+            vertex_index = 0;
+        }
     }
-    /*data->glVertexAttribPointer(GLES2_ATTRIBUTE_POSITION, 2, GL_FLOAT, GL_FALSE, 0, vertices);*/
-    GLES2_UpdateVertexBuffer(renderer, GLES2_ATTRIBUTE_POSITION, vertices, count * 2 * sizeof(GLfloat));
-    data->glDrawArrays(GL_POINTS, 0, count);
-    SDL_stack_free(vertices);
+
+    GLES2_FlushVertices(renderer, vertex_index, vertices, GL_POINTS);
+
     return 0;
 }
 
@@ -1525,32 +1507,38 @@ static int
 GLES2_RenderDrawLines(SDL_Renderer *renderer, const SDL_FPoint *points, int count)
 {
     GLES2_DriverContext *data = (GLES2_DriverContext *)renderer->driverdata;
-    GLfloat *vertices;
+    GLfloat *vertices = data->vertices;
     int idx;
 
     if (GLES2_SetDrawingState(renderer) < 0) {
         return -1;
     }
 
-    /* Emit a line strip including the specified vertices */
-    vertices = SDL_stack_alloc(GLfloat, count * 2);
+    int vertex_index = 0;
     for (idx = 0; idx < count; ++idx) {
         GLfloat x = points[idx].x + 0.5f;
         GLfloat y = points[idx].y + 0.5f;
 
-        vertices[idx * 2] = x;
-        vertices[(idx * 2) + 1] = y;
+        vertices[GLES2_VERTEX_POS_X + vertex_index * GLES2_VERTEX_STRIDE] = x;
+        vertices[GLES2_VERTEX_POS_Y + vertex_index * GLES2_VERTEX_STRIDE] = y;
+        ++vertex_index;
+        if (vertex_index == GLES2_VERTEX_MAX_VERTICES)
+        {
+            GLES2_FlushVertices(renderer, vertex_index, vertices, GL_LINE_STRIP);
+            vertex_index = 0;
+            vertices[GLES2_VERTEX_POS_X + vertex_index * GLES2_VERTEX_STRIDE] = x;
+            vertices[GLES2_VERTEX_POS_Y + vertex_index * GLES2_VERTEX_STRIDE] = y;
+            ++vertex_index;
+        }
     }
-    /*data->glVertexAttribPointer(GLES2_ATTRIBUTE_POSITION, 2, GL_FLOAT, GL_FALSE, 0, vertices);*/
-    GLES2_UpdateVertexBuffer(renderer, GLES2_ATTRIBUTE_POSITION, vertices, count * 2 * sizeof(GLfloat));
-    data->glDrawArrays(GL_LINE_STRIP, 0, count);
+
+    GLES2_FlushVertices(renderer, vertex_index, vertices, GL_LINE_STRIP);
 
     /* We need to close the endpoint of the line */
     if (count == 2 ||
-        points[0].x != points[count-1].x || points[0].y != points[count-1].y) {
-        data->glDrawArrays(GL_POINTS, count-1, 1);
+        points[0].x != points[count - 1].x || points[0].y != points[count - 1].y) {
+        GLES2_FlushVertices(renderer, 1, vertices + count - 1, GL_POINTS);
     }
-    SDL_stack_free(vertices);
 
     return GL_CheckError("", renderer);
 }
@@ -1559,15 +1547,16 @@ static int
 GLES2_RenderFillRects(SDL_Renderer *renderer, const SDL_FRect *rects, int count)
 {
     GLES2_DriverContext *data = (GLES2_DriverContext *)renderer->driverdata;
-    GLfloat vertices[8];
+    GLfloat* vertices = data->vertices;
     int idx;
 
     if (GLES2_SetDrawingState(renderer) < 0) {
         return -1;
     }
 
-    /* Emit a line loop for each rectangle */
-    for (idx = 0; idx < count; ++idx) {
+    int vertex_index = 0;
+    for (idx = 0; idx < count; ++idx)
+    {
         const SDL_FRect *rect = &rects[idx];
 
         GLfloat xMin = rect->x;
@@ -1575,18 +1564,45 @@ GLES2_RenderFillRects(SDL_Renderer *renderer, const SDL_FRect *rects, int count)
         GLfloat yMin = rect->y;
         GLfloat yMax = (rect->y + rect->h);
 
-        vertices[0] = xMin;
-        vertices[1] = yMin;
-        vertices[2] = xMax;
-        vertices[3] = yMin;
-        vertices[4] = xMin;
-        vertices[5] = yMax;
-        vertices[6] = xMax;
-        vertices[7] = yMax;
-        /*data->glVertexAttribPointer(GLES2_ATTRIBUTE_POSITION, 2, GL_FLOAT, GL_FALSE, 0, vertices);*/
-        GLES2_UpdateVertexBuffer(renderer, GLES2_ATTRIBUTE_POSITION, vertices, 8 * sizeof(GLfloat));
-        data->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        // 0 == 5, 1, 2 == 3, 4; 0, 1, 2; 3, 4, 5;
+
+        //0
+        vertices[GLES2_VERTEX_POS_X + vertex_index * GLES2_VERTEX_STRIDE] = xMin;
+        vertices[GLES2_VERTEX_POS_Y + vertex_index * GLES2_VERTEX_STRIDE] = yMin;
+        ++vertex_index;
+
+        //1
+        vertices[GLES2_VERTEX_POS_X + vertex_index * GLES2_VERTEX_STRIDE] = xMax;
+        vertices[GLES2_VERTEX_POS_Y + vertex_index * GLES2_VERTEX_STRIDE] = yMin;
+        ++vertex_index;
+
+        //2
+        vertices[GLES2_VERTEX_POS_X + vertex_index * GLES2_VERTEX_STRIDE] = xMax;
+        vertices[GLES2_VERTEX_POS_Y + vertex_index * GLES2_VERTEX_STRIDE] = yMax;
+        ++vertex_index;
+
+        //3
+        vertices[GLES2_VERTEX_POS_X + vertex_index * GLES2_VERTEX_STRIDE] = xMax;
+        vertices[GLES2_VERTEX_POS_Y + vertex_index * GLES2_VERTEX_STRIDE] = yMax;
+        ++vertex_index;
+
+        //4
+        vertices[GLES2_VERTEX_POS_X + vertex_index * GLES2_VERTEX_STRIDE] = xMin;
+        vertices[GLES2_VERTEX_POS_Y + vertex_index * GLES2_VERTEX_STRIDE] = yMax;
+        ++vertex_index;
+
+        //5
+        vertices[GLES2_VERTEX_POS_X + vertex_index * GLES2_VERTEX_STRIDE] = xMin;
+        vertices[GLES2_VERTEX_POS_Y + vertex_index * GLES2_VERTEX_STRIDE] = yMin;
+        ++vertex_index;
+        if ((vertex_index + 6) > GLES2_VERTEX_MAX_VERTICES)
+        {
+            GLES2_FlushVertices(renderer, vertex_index, vertices, GL_TRIANGLES);
+            vertex_index = 0;
+        }
     }
+
+    GLES2_FlushVertices(renderer, vertex_index, vertices, GL_TRIANGLES);
     return GL_CheckError("", renderer);
 }
 
@@ -1807,12 +1823,9 @@ GLES2_RenderCopy(SDL_Renderer *renderer, SDL_Texture *texture, const SDL_Rect *s
     vertices[GLES2_VERTEX_COLOR_G + vertex_index * GLES2_VERTEX_STRIDE] = g;
     vertices[GLES2_VERTEX_COLOR_B + vertex_index * GLES2_VERTEX_STRIDE] = b;
     vertices[GLES2_VERTEX_COLOR_A + vertex_index * GLES2_VERTEX_STRIDE] = a;
+    ++vertex_index;
 
-    GLES2_UpdateVertexBuffer(renderer, GLES2_ATTRIBUTE_POSITION, vertices, 8 * sizeof(GLfloat));
-    GLES2_UpdateVertexBuffer(renderer, GLES2_ATTRIBUTE_TEXCOORD, vertices, 8 * sizeof(GLfloat));
-    GLES2_UpdateVertexBuffer(renderer, GLES2_ATTRIBUTE_COLOR, vertices, 16 * sizeof(GLfloat));
-   
-    data->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    GLES2_FlushVertices(renderer, vertex_index, vertices, GL_TRIANGLE_STRIP);
 
     return GL_CheckError("", renderer);
 }
@@ -1889,6 +1902,7 @@ GLES2_RenderCopyEx(SDL_Renderer *renderer, SDL_Texture *texture, const SDL_Rect 
     vertices[GLES2_VERTEX_COLOR_G + vertex_index * GLES2_VERTEX_STRIDE] = g;
     vertices[GLES2_VERTEX_COLOR_B + vertex_index * GLES2_VERTEX_STRIDE] = b;
     vertices[GLES2_VERTEX_COLOR_A + vertex_index * GLES2_VERTEX_STRIDE] = a;
+    ++vertex_index;
 
     if (flip & SDL_FLIP_HORIZONTAL) {
         tmp = vertices[GLES2_VERTEX_POS_X + 0 * GLES2_VERTEX_STRIDE];
@@ -1901,13 +1915,7 @@ GLES2_RenderCopyEx(SDL_Renderer *renderer, SDL_Texture *texture, const SDL_Rect 
         vertices[GLES2_VERTEX_POS_Y + 2 * GLES2_VERTEX_STRIDE] = vertices[GLES2_VERTEX_POS_Y + 3 * GLES2_VERTEX_STRIDE] = tmp;
     }
 
-    GLES2_UpdateVertexBuffer(renderer, GLES2_ATTRIBUTE_POSITION, vertices, 8 * sizeof(GLfloat));
-    GLES2_UpdateVertexBuffer(renderer, GLES2_ATTRIBUTE_TEXCOORD, vertices, 8 * sizeof(GLfloat));
-    GLES2_UpdateVertexBuffer(renderer, GLES2_ATTRIBUTE_COLOR, vertices, 16 * sizeof(GLfloat));
-    GLES2_UpdateVertexBuffer(renderer, GLES2_ATTRIBUTE_ANGLE, vertices, 4 * sizeof(GLfloat));
-    GLES2_UpdateVertexBuffer(renderer, GLES2_ATTRIBUTE_CENTER, vertices, 8 * sizeof(GLfloat));
-
-    data->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    GLES2_FlushVertices(renderer, vertex_index, vertices, GL_TRIANGLE_STRIP);
 
     data->glDisableVertexAttribArray(GLES2_ATTRIBUTE_CENTER);
     data->glDisableVertexAttribArray(GLES2_ATTRIBUTE_ANGLE);
@@ -2192,6 +2200,7 @@ GLES2_CreateRenderer(SDL_Window *window, Uint32 flags)
         goto error;
     }
 
+#if SDL_GLES2_USE_VBOS
     if (!data->common_VBO) {
         const int data_size = GLES2_VERTEX_MAX_VERTICES * GLES2_VERTEX_STRIDE * sizeof(GLfloat);
         GLfloat* zero_data = SDL_malloc(data_size);
@@ -2206,6 +2215,7 @@ GLES2_CreateRenderer(SDL_Window *window, Uint32 flags)
         data->glBindBuffer(GL_ARRAY_BUFFER, 0);
         SDL_free(zero_data);
     }
+#endif
 
     /* Populate the function pointers for the module */
     renderer->WindowEvent         = &GLES2_WindowEvent;
@@ -2250,25 +2260,6 @@ error:
         SDL_RecreateWindow(window, window_flags);
     }
     return NULL;
-}
-
-static void GLES2_FlushBatch(SDL_Renderer *renderer, const int vertices_count, const void* vertices)
-{
-    GLES2_DriverContext *data = (GLES2_DriverContext *)renderer->driverdata;
-
-    data->glBindBuffer(GL_ARRAY_BUFFER, data->common_VBO);
-
-    data->glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * vertices_count * GLES2_VERTEX_STRIDE, vertices);
-    //data->glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertices_count * GLES2_VERTEX_STRIDE, vertices, GL_STREAM_DRAW);
-    data->glVertexAttribPointer(GLES2_ATTRIBUTE_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * GLES2_VERTEX_STRIDE, (void*)(sizeof(GLfloat) * GLES2_VERTEX_POSITION_OFFSET));
-    data->glVertexAttribPointer(GLES2_ATTRIBUTE_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * GLES2_VERTEX_STRIDE, (void*)(sizeof(GLfloat) * GLES2_VERTEX_TEXTURE_OFFSET));
-    data->glVertexAttribPointer(GLES2_ATTRIBUTE_ANGLE, 1, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * GLES2_VERTEX_STRIDE, (void*)(sizeof(GLfloat) * GLES2_VERTEX_ANGLE_OFFSET));
-    data->glVertexAttribPointer(GLES2_ATTRIBUTE_CENTER, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * GLES2_VERTEX_STRIDE, (void*)(sizeof(GLfloat) * GLES2_VERTEX_CENTER_OFFSET));
-    data->glVertexAttribPointer(GLES2_ATTRIBUTE_COLOR, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * GLES2_VERTEX_STRIDE, (void*)(sizeof(GLfloat) * GLES2_VERTEX_COLOR_OFFSET));
-
-    data->glDrawArrays(GL_TRIANGLES, 0, vertices_count);
-
-    data->glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 static int GLES2_RenderBatch(SDL_Renderer *renderer, SDL_Batch *batch)
@@ -2393,12 +2384,12 @@ static int GLES2_RenderBatch(SDL_Renderer *renderer, SDL_Batch *batch)
         ++angle;
         if ((vertex_index + 6) > GLES2_VERTEX_MAX_VERTICES)
         {
-            GLES2_FlushBatch(renderer, vertex_index, vertices);
+            GLES2_FlushVertices(renderer, vertex_index, vertices, GL_TRIANGLES);
             vertex_index = 0;
         }
     }   
 
-    GLES2_FlushBatch(renderer, vertex_index, vertices);
+    GLES2_FlushVertices(renderer, vertex_index, vertices, GL_TRIANGLES);
 
     data->glDisableVertexAttribArray(GLES2_ATTRIBUTE_CENTER);
     data->glDisableVertexAttribArray(GLES2_ATTRIBUTE_ANGLE);    
