@@ -161,8 +161,6 @@ static void D3D_DestroyTexture(SDL_Renderer * renderer,
                                SDL_Texture * texture);
 static void D3D_DestroyRenderer(SDL_Renderer * renderer);
 
-static int D3D_CreateBatch(SDL_Renderer *renderer, SDL_Batch *batch, SDL_Texture *texture, const SDL_Rect *srcrect, const SDL_Rect *dstrect,
-                           const SDL_Color *colors, const float *angles, unsigned int size, SDL_bool is_one_src);
 static int D3D_RenderBatch(SDL_Renderer *renderer, SDL_Batch *batch);
 
 SDL_RenderDriver D3D_RenderDriver = {
@@ -176,11 +174,7 @@ SDL_RenderDriver D3D_RenderDriver = {
      0}
 };
 
-#ifdef SDL_USE_BATCH
-#define D3D_VERTEX_MAX_VERTICES 4096
-#else
-#define D3D_VERTEX_MAX_VERTICES 4
-#endif
+#define D3D_VERTEX_MAX_VERTICES MAX_VERTICES_COUNT
 
 typedef struct
 {
@@ -1983,15 +1977,6 @@ D3D_DestroyRenderer(SDL_Renderer * renderer)
         SDL_free(data);
     }
     SDL_free(renderer);
-}
-
-static int 
-D3D_CreateBatch(SDL_Renderer *renderer, SDL_Batch *batch, SDL_Texture *texture, const SDL_Rect *srcrect, const SDL_Rect *dstrect, 
-                const SDL_Color *colors, const float *angles, unsigned int size, SDL_bool is_one_src)
-{
-   
-
-    return 0;
 }
 
 static int

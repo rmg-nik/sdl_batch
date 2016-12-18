@@ -1976,6 +1976,7 @@ SDL_Batch* SDL_CreateBatch(SDL_Renderer *renderer, SDL_Texture *texture,
     const SDL_Rect *srcrect, const SDL_Rect *dstrect, const SDL_Color *colors, 
     const float *angles, unsigned int size, SDL_bool is_one_src)
 {
+    SDL_Rect *sources;
     SDL_Batch* batch = SDL_calloc(1, sizeof(SDL_Batch));
 
     if (!texture) {
@@ -2014,8 +2015,8 @@ SDL_Batch* SDL_CreateBatch(SDL_Renderer *renderer, SDL_Texture *texture,
         SDL_SetError("SDL_CreateBatch: Cannot allocate enough memory for batch");
         goto error;
     }
-
-    SDL_Rect* sources = batch->sources;
+    
+    sources = batch->sources;
     for (unsigned int i = 0; i < size; ++i) {
         if (srcrect) {
             sources->x = srcrect->x;
@@ -2077,12 +2078,13 @@ void SDL_DestroyBatch(SDL_Renderer *renderer, SDL_Batch *batch)
 
 int SDL_RenderBatch(SDL_Renderer *renderer, SDL_Batch *batch)
 {
+    SDL_Texture* texture;
     if (!batch)
         return -1;
 
     CHECK_RENDERER_MAGIC(renderer, -1);
-
-    SDL_Texture* texture = batch->texture;
+    
+    texture = batch->texture;
     CHECK_TEXTURE_MAGIC(texture, -1);
 
     if (renderer != texture->renderer) {
@@ -2100,6 +2102,7 @@ int SDL_RenderBatch(SDL_Renderer *renderer, SDL_Batch *batch)
 
 void SDL_SetBatchDestinations(SDL_Renderer *renderer, SDL_Batch *batch, const SDL_Rect *dstrect)
 {
+    SDL_Rect* batch_dst;
     if (!batch || !dstrect)
     {
         SDL_SetError("SDL_UpdateBatchDestinations: batch or dtsrect is NULL");
@@ -2108,8 +2111,8 @@ void SDL_SetBatchDestinations(SDL_Renderer *renderer, SDL_Batch *batch, const SD
 
     if (dstrect == batch->destinations)
         return;
-
-    SDL_Rect* batch_dst = batch->destinations;
+    
+    batch_dst = batch->destinations;
     for (unsigned int i = 0; i < batch->size; ++i)
     {
         batch_dst->x = dstrect->x;
@@ -2123,15 +2126,16 @@ void SDL_SetBatchDestinations(SDL_Renderer *renderer, SDL_Batch *batch, const SD
 
 void SDL_SetBatchColors(SDL_Renderer *renderer, SDL_Batch *batch, const SDL_Color *colors)
 {
+    SDL_Texture* texture;
+    SDL_Color* batch_colors;
     if (!batch || !colors)
     {
         SDL_SetError("SDL_UpdateBatchColors: batch or colors is NULL");
         return;
     }
-
-    SDL_Texture* texture = batch->texture;
-
-    SDL_Color* batch_colors = batch->colors;
+    
+    texture = batch->texture;    
+    batch_colors = batch->colors;
     for (unsigned int i = 0; i < batch->size; ++i)
     {
         if (colors != NULL)
@@ -2153,6 +2157,7 @@ void SDL_SetBatchColors(SDL_Renderer *renderer, SDL_Batch *batch, const SDL_Colo
 
 void SDL_SetBatchAngles(SDL_Renderer *renderer, SDL_Batch *batch, const float *angles)
 {
+    float* batch_angles;
     if (!batch || !angles)
     {
         SDL_SetError("SDL_UpdateBatchAngles: batch or angles is NULL");
@@ -2161,10 +2166,10 @@ void SDL_SetBatchAngles(SDL_Renderer *renderer, SDL_Batch *batch, const float *a
 
     if (angles == batch->angles)
         return;
-
-    float* batch_angles = batch->angles;
-    unsigned int i = 0;
-    for (; i < batch->size; ++i)
+    
+    batch_angles = batch->angles;
+    
+    for (unsigned int i = 0; i < batch->size; ++i)
     {
         if (angles != NULL)
         {
