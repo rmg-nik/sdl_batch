@@ -1,0 +1,258 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{ACB596EF-E302-3767-879B-8B1B907D4D21}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>Win32</Platform>
+    <ProjectName>SDL2</ProjectName>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="..\common.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="..\common.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">SDL2.$(Configuration)</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.lib</TargetExt>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">SDL2.$(Configuration)</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.lib</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)SDL2-2.0.5\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>Debug/</AssemblerListingLocation>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <CompileAs>CompileAsC</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;USING_GENERATED_CONFIG_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;USING_GENERATED_CONFIG_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)SDL2-2.0.5\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)SDL2-2.0.5\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions> /machine:X86 %(AdditionalOptions)</AdditionalOptions>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)SDL2-2.0.5\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>Release/</AssemblerListingLocation>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <CompileAs>CompileAsC</CompileAs>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;USING_GENERATED_CONFIG_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;USING_GENERATED_CONFIG_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)SDL2-2.0.5\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)SDL2-2.0.5\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions> /machine:X86 %(AdditionalOptions)</AdditionalOptions>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\SDL.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\SDL_assert.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\SDL_error.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\SDL_hints.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\SDL_log.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\atomic\SDL_atomic.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\atomic\SDL_spinlock.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\audio\SDL_audio.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\audio\SDL_audiocvt.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\audio\SDL_audiodev.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\audio\SDL_audiotypecvt.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\audio\SDL_mixer.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\audio\SDL_wave.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\cpuinfo\SDL_cpuinfo.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\dynapi\SDL_dynapi.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\events\SDL_clipboardevents.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\events\SDL_dropevents.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\events\SDL_events.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\events\SDL_gesture.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\events\SDL_keyboard.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\events\SDL_mouse.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\events\SDL_quit.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\events\SDL_touch.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\events\SDL_windowevents.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\file\SDL_rwops.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\libm\e_atan2.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\libm\e_log.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\libm\e_pow.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\libm\e_rem_pio2.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\libm\e_sqrt.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\libm\k_cos.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\libm\k_rem_pio2.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\libm\k_sin.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\libm\k_tan.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\libm\s_atan.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\libm\s_copysign.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\libm\s_cos.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\libm\s_fabs.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\libm\s_floor.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\libm\s_scalbn.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\libm\s_sin.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\libm\s_tan.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\render\SDL_d3dmath.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\render\SDL_render.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\render\SDL_yuv_mmx.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\render\SDL_yuv_sw.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\render\direct3d\SDL_render_d3d.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\render\direct3d11\SDL_render_d3d11.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\render\opengl\SDL_render_gl.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\render\opengl\SDL_shaders_gl.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\render\opengles\SDL_render_gles.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\render\opengles2\SDL_render_gles2.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\render\opengles2\SDL_shaders_gles2.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\render\psp\SDL_render_psp.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\render\software\SDL_blendfillrect.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\render\software\SDL_blendline.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\render\software\SDL_blendpoint.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\render\software\SDL_drawline.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\render\software\SDL_drawpoint.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\render\software\SDL_render_sw.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\render\software\SDL_rotate.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\stdlib\SDL_getenv.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\stdlib\SDL_iconv.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\stdlib\SDL_malloc.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\stdlib\SDL_qsort.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\stdlib\SDL_stdlib.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\stdlib\SDL_string.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\thread\SDL_thread.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\timer\SDL_timer.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\SDL_RLEaccel.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\SDL_blit.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\SDL_blit_0.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\SDL_blit_1.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\SDL_blit_A.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\SDL_blit_N.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\SDL_blit_auto.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\SDL_blit_copy.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\SDL_blit_slow.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\SDL_bmp.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\SDL_clipboard.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\SDL_egl.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\SDL_fillrect.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\SDL_pixels.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\SDL_rect.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\SDL_shape.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\SDL_stretch.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\SDL_surface.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\SDL_video.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\joystick\SDL_gamecontroller.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\joystick\SDL_joystick.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\haptic\SDL_haptic.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\power\SDL_power.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\audio\dummy\SDL_dummyaudio.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\audio\disk\SDL_diskaudio.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\dummy\SDL_nullevents.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\dummy\SDL_nullframebuffer.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\dummy\SDL_nullvideo.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\core\windows\SDL_windows.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\core\windows\SDL_xinput.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\audio\winmm\SDL_winmm.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\audio\directsound\SDL_directsound.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\windows\SDL_windowsclipboard.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\windows\SDL_windowsevents.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\windows\SDL_windowsframebuffer.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\windows\SDL_windowskeyboard.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\windows\SDL_windowsmessagebox.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\windows\SDL_windowsmodes.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\windows\SDL_windowsmouse.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\windows\SDL_windowsopengl.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\windows\SDL_windowsopengles.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\windows\SDL_windowsshape.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\windows\SDL_windowsvideo.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\video\windows\SDL_windowswindow.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\thread\windows\SDL_sysmutex.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\thread\windows\SDL_syssem.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\thread\windows\SDL_systhread.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\thread\windows\SDL_systls.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\thread\generic\SDL_syscond.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\power\windows\SDL_syspower.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\filesystem\windows\SDL_sysfilesystem.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\timer\windows\SDL_systimer.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\loadso\windows\SDL_sysloadso.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\joystick\windows\SDL_dinputjoystick.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\joystick\windows\SDL_mmjoystick.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\joystick\windows\SDL_windowsjoystick.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\joystick\windows\SDL_xinputjoystick.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\haptic\windows\SDL_dinputhaptic.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\haptic\windows\SDL_windowshaptic.c" />
+    <ClCompile Include="$(SolutionDir)SDL2-2.0.5\src\haptic\windows\SDL_xinputhaptic.c" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

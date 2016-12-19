@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testSDL", "vs14\testSDL\testSDL.vcxproj", "{2F64CE47-2B5B-48A9-970E-89D1DF026861}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ACB596EF-E302-3767-879B-8B1B907D4D21} = {ACB596EF-E302-3767-879B-8B1B907D4D21}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SDL2", "vs14\SDL2\SDL2.vcxproj", "{ACB596EF-E302-3767-879B-8B1B907D4D21}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2F64CE47-2B5B-48A9-970E-89D1DF026861}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2F64CE47-2B5B-48A9-970E-89D1DF026861}.Debug|Win32.Build.0 = Debug|Win32
+		{2F64CE47-2B5B-48A9-970E-89D1DF026861}.Release|Win32.ActiveCfg = Release|Win32
+		{2F64CE47-2B5B-48A9-970E-89D1DF026861}.Release|Win32.Build.0 = Release|Win32
+		{ACB596EF-E302-3767-879B-8B1B907D4D21}.Debug|Win32.ActiveCfg = Debug|Win32
+		{ACB596EF-E302-3767-879B-8B1B907D4D21}.Debug|Win32.Build.0 = Debug|Win32
+		{ACB596EF-E302-3767-879B-8B1B907D4D21}.Release|Win32.ActiveCfg = Release|Win32
+		{ACB596EF-E302-3767-879B-8B1B907D4D21}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
