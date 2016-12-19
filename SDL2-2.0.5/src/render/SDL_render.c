@@ -1094,11 +1094,12 @@ SDL_SetRenderTarget(SDL_Renderer *renderer, SDL_Texture *texture)
         renderer->logical_w_backup = renderer->logical_w;
         renderer->logical_h_backup = renderer->logical_h;
     }
-    renderer->target = texture;
 
     if (renderer->SetRenderTarget(renderer, texture) < 0) {
         return -1;
     }
+
+    renderer->target = texture;
 
     if (texture) {
         renderer->viewport.x = 0;
