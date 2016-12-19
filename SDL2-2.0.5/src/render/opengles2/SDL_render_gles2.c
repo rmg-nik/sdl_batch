@@ -2290,6 +2290,7 @@ static int GLES2_FlushVertices(SDL_Renderer *renderer)
     GLES2_TextureData *texture_data;
     SDL_BlendMode blendMode;
     int result;
+    int i;
     const size_t pos = offsetof(struct  Vertex, pos);
     const size_t tex = offsetof(struct  Vertex, tex);
     const size_t angle = offsetof(struct  Vertex, angle);
@@ -2310,7 +2311,7 @@ static int GLES2_FlushVertices(SDL_Renderer *renderer)
     data->glVertexAttribPointer(GLES2_ATTRIBUTE_CENTER, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(ptr + center));
     data->glVertexAttribPointer(GLES2_ATTRIBUTE_COLOR, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(ptr + color));
 
-    for (int i = 0; i < commands_count; ++i)
+    for (i = 0; i < commands_count; ++i)
     {
         type = commands[i].primitive_type;
         texture = commands[i].texture;
@@ -2320,15 +2321,22 @@ static int GLES2_FlushVertices(SDL_Renderer *renderer)
         if (type == GL_TRIANGLES && texture) {
             texture_data = (GLES2_TextureData*)texture->driverdata;
             texture_data->in_batch = SDL_FALSE;
+            //data->glEnableVertexAttribArray(GLES2_ATTRIBUTE_ANGLE);
+            //data->glEnableVertexAttribArray(GLES2_ATTRIBUTE_CENTER);
             result = GLES2_SetupCopy(renderer, texture, blendMode);
         }
         else
+        {
+            //data->glDisableVertexAttribArray(GLES2_ATTRIBUTE_ANGLE);
+            //data->glDisableVertexAttribArray(GLES2_ATTRIBUTE_CENTER);
             result = GLES2_SetDrawingState(renderer, blendMode);
+        }
         if (result < 0)
             continue;
         data->glDrawArrays(type, offset, size);
     }
 
+    //SDL_memset(vertices, 0, sizeof(Vertex) * GLES2_VERTEX_MAX_VERTICES);
     data->draw_command_current_offset = -1;
     data->vertices_current_offset = 0;
 #if SDL_GLES2_USE_VBOS
