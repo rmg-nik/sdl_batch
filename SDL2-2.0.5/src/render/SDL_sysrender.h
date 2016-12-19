@@ -72,17 +72,6 @@ struct SDL_Texture
     SDL_Texture *next;
 };
 
-struct SDL_Batch
-{
-    SDL_Texture* texture;
-    SDL_Rect* destinations;
-    SDL_Rect* sources;
-    float* angles;
-    SDL_Color* colors;
-    unsigned int size;
-    SDL_bool is_one_src;
-};
-
 /* Define the SDL renderer structure */
 struct SDL_Renderer
 {
@@ -132,8 +121,6 @@ struct SDL_Renderer
 
     int (*GL_BindTexture) (SDL_Renderer * renderer, SDL_Texture *texture, float *texw, float *texh);
     int (*GL_UnbindTexture) (SDL_Renderer * renderer, SDL_Texture *texture);
-
-    int (*RenderBatch)(SDL_Renderer *renderer, SDL_Batch *batch);
 
     /* The current renderer info */
     SDL_RendererInfo info;

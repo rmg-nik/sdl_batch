@@ -127,8 +127,6 @@ typedef struct SDL_Renderer SDL_Renderer;
 struct SDL_Texture;
 typedef struct SDL_Texture SDL_Texture;
 
-struct SDL_Batch;
-typedef struct SDL_Batch SDL_Batch;
 
 /* Function prototypes */
 
@@ -895,58 +893,6 @@ extern DECLSPEC int SDLCALL SDL_GL_BindTexture(SDL_Texture *texture, float *texw
  */
 extern DECLSPEC int SDLCALL SDL_GL_UnbindTexture(SDL_Texture *texture);
 
-/**
-*  \brief Create batch object
-*
-*  \param renderer     SDL_Renderer for which create batch
-*  \param texture      SDL_Texture for batch drawing
-*  \param srcrect      array of SDL_Rect for getting texture areas for batch drawing. 
-*                      Can be: 1) NULL - entire texture will be used, is_one_src is ignored
-*                              2) single element - is_one_src must be SDL_TRUE
-*                              3) array - is_one_src have to be SDL_FALSE (otherwise it is foolish)
-*  \param dstrect      SDL_Rect array for batch drawing destinations. Can be NULL, but in this case have to be set in the future with SDL_SetBatchDestinations or pair (SDL_QueryBatchDestinations and SDL_UpdateBatchDestinations)
-*  \param colors       SDL_Color array for batch drawing elements color. Can be NULL (will be used texture color)
-*  \param angles       float array for batch drawing elements rotation. Can be NULL (will be set 0.0 by default)
-*  \param size         count of elements in batch
-*  \param is_one_src   use it if srcrect is single-element array
-*
-*  \return The created batch is returned, or NULL on error.
-*/
-extern DECLSPEC SDL_Batch* SDLCALL SDL_CreateBatch(SDL_Renderer *renderer,
-    SDL_Texture *texture,
-    const SDL_Rect *srcrect,
-    const SDL_Rect *dstrect,
-    const SDL_Color *colors,
-    const float *angles,
-    unsigned int size,
-    SDL_bool is_one_src);
-
-extern DECLSPEC void SDLCALL SDL_DestroyBatch(SDL_Renderer *renderer,
-    SDL_Batch *batch);
-
-extern DECLSPEC int SDLCALL SDL_RenderBatch(SDL_Renderer *renderer,
-    SDL_Batch *batch);
-
-extern DECLSPEC void SDLCALL SDL_SetBatchDestinations(SDL_Renderer *renderer,
-    SDL_Batch *batch, const SDL_Rect *dstrect);
-
-extern DECLSPEC void SDLCALL SDL_SetBatchColors(SDL_Renderer *renderer,
-    SDL_Batch *batch, const SDL_Color *colors);
-
-extern DECLSPEC void SDLCALL SDL_SetBatchAngles(SDL_Renderer *renderer,
-    SDL_Batch *batch, const float *angles);
-
-extern DECLSPEC int SDLCALL SDL_GetBatchSize(SDL_Batch* batch);
-
-extern DECLSPEC void SDLCALL SDL_QueryBatchDestinations(SDL_Batch* batch, SDL_Rect** dst, int* size);
-
-extern DECLSPEC void SDLCALL SDL_QueryBatchAngles(SDL_Batch* batch, float** angles, int* size);
-
-extern DECLSPEC void SDLCALL SDL_QueryBatchColors(SDL_Batch* batch, SDL_Color** colors, int* size);
-
-extern DECLSPEC void SDLCALL SDL_UpdateBatchDestinations(SDL_Batch* batch);
-
-extern DECLSPEC void SDLCALL SDL_UpdateBatchColors(SDL_Batch* batch);
 
 /* Ends C function definitions when using C++ */
 #ifdef __cplusplus
