@@ -1450,16 +1450,12 @@ GLES2_RenderDrawPoints(SDL_Renderer *renderer, const SDL_FPoint *points, int cou
     GLfloat a = renderer->a * inv255f;
     const int VERTICES_FOR_POINT = 1;
 
-    if (data->vertices_current_offset + count * VERTICES_FOR_POINT > GLES2_MAX_VERTICES)
-        GLES2_FlushVertices(renderer);
-
-    GLES2_CheckAndAddNewCommand(renderer, NULL, renderer->blendMode, GL_POINTS, (count > GLES2_MAX_VERTICES) ? GLES2_MAX_VERTICES : count);
     for (idx = 0; idx < count; ++idx) {
         if (data->vertices_current_offset + VERTICES_FOR_POINT > GLES2_MAX_VERTICES) {
-            int new_count = count - idx;
-            GLES2_FlushVertices(renderer);            
-            GLES2_CheckAndAddNewCommand(renderer, NULL, renderer->blendMode, GL_POINTS, (new_count > GLES2_MAX_VERTICES) ? GLES2_MAX_VERTICES : new_count);
+            GLES2_FlushVertices(renderer);                        
         }
+        GLES2_CheckAndAddNewCommand(renderer, NULL, renderer->blendMode, GL_POINTS, VERTICES_FOR_POINT);
+
         GLfloat x = points[idx].x + 0.5f;
         GLfloat y = points[idx].y + 0.5f;
 
@@ -1481,56 +1477,43 @@ GLES2_RenderDrawLines(SDL_Renderer *renderer, const SDL_FPoint *points, int coun
 {
     GLES2_DriverContext *data = (GLES2_DriverContext *)renderer->driverdata;
     Vertex *vertices = data->vertices;
-    int vertex_index;
     int idx;
     GLfloat r = renderer->r * inv255f;
     GLfloat g = renderer->g * inv255f;
     GLfloat b = renderer->b * inv255f;
     GLfloat a = renderer->a * inv255f;
-    const int VERTICES_FOR_LINES = 2 * (count - 1);
-    //TODO: make loop and draw by parts
-    if (VERTICES_FOR_LINES > GLES2_MAX_VERTICES) {
-        SDL_SetError("Too many points for draw");
-        return -1;
-    }
-    if (data->vertices_current_offset + VERTICES_FOR_LINES > GLES2_MAX_VERTICES)
-        GLES2_FlushVertices(renderer);
+    const int VERTICES_FOR_LINE = 2;
 
-    vertex_index = data->vertices_current_offset;
-    //Rewrite for using GL_LINES (GL_LINE_STRIP is not suitable for batching)
-    GLES2_CheckAndAddNewCommand(renderer, NULL, renderer->blendMode, GL_LINES, VERTICES_FOR_LINES);
     for (idx = 0; idx < count - 1; ++idx) {
+        if (data->vertices_current_offset + VERTICES_FOR_LINE > GLES2_MAX_VERTICES) {
+            GLES2_FlushVertices(renderer);
+        }
+        GLES2_CheckAndAddNewCommand(renderer, NULL, renderer->blendMode, GL_LINES, VERTICES_FOR_LINE);
+
         const GLfloat x1 = points[idx].x + 0.5f;
         const GLfloat y1 = points[idx].y + 0.5f;
         const GLfloat x2 = points[idx + 1].x + 0.5f;
         const GLfloat y2 = points[idx + 1].y + 0.5f;
 
-        vertices[vertex_index].pos[0] = x1;
-        vertices[vertex_index].pos[1] = y1;
-        vertices[vertex_index].angle = 0.0f;
-        vertices[vertex_index].color[0] = r;
-        vertices[vertex_index].color[1] = g;
-        vertices[vertex_index].color[2] = b;
-        vertices[vertex_index].color[3] = a;
-        ++vertex_index;
+        vertices[data->vertices_current_offset].pos[0] = x1;
+        vertices[data->vertices_current_offset].pos[1] = y1;
+        vertices[data->vertices_current_offset].angle = 0.0f;
+        vertices[data->vertices_current_offset].color[0] = r;
+        vertices[data->vertices_current_offset].color[1] = g;
+        vertices[data->vertices_current_offset].color[2] = b;
+        vertices[data->vertices_current_offset].color[3] = a;
+        ++data->vertices_current_offset;
 
-        vertices[vertex_index].pos[0] = x2;
-        vertices[vertex_index].pos[1] = y2;
-        vertices[vertex_index].angle = 0.0f;
-        vertices[vertex_index].color[0] = r;
-        vertices[vertex_index].color[1] = g;
-        vertices[vertex_index].color[2] = b;
-        vertices[vertex_index].color[3] = a;
-        ++vertex_index;
+        vertices[data->vertices_current_offset].pos[0] = x2;
+        vertices[data->vertices_current_offset].pos[1] = y2;
+        vertices[data->vertices_current_offset].angle = 0.0f;
+        vertices[data->vertices_current_offset].color[0] = r;
+        vertices[data->vertices_current_offset].color[1] = g;
+        vertices[data->vertices_current_offset].color[2] = b;
+        vertices[data->vertices_current_offset].color[3] = a;
+        ++data->vertices_current_offset;
     }
-    data->vertices_current_offset += VERTICES_FOR_LINES;
 
-    //Why we need?
-    /* We need to close the endpoint of the line */
-    //if (count == 2 ||
-    //    points[0].x != points[count - 1].x || points[0].y != points[count - 1].y) {
-    //    GLES2_RenderDrawPoints(renderer, &points[count - 1], 1);
-    //}
     return GL_CheckError("", renderer);
 }
 
