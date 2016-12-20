@@ -1522,24 +1522,19 @@ GLES2_RenderFillRects(SDL_Renderer *renderer, const SDL_FRect *rects, int count)
 {
     GLES2_DriverContext *data = (GLES2_DriverContext *)renderer->driverdata;
     Vertex *vertices = data->vertices;
-    int vertex_index;
     int idx;
     GLfloat r = renderer->r * inv255f;
     GLfloat g = renderer->g * inv255f;
     GLfloat b = renderer->b * inv255f;
     GLfloat a = renderer->a * inv255f;
-    const int VERTICES_FOR_QUAD = 6;
-    //TODO: make loop and draw by parts
-    if (VERTICES_FOR_QUAD * count > GLES2_MAX_VERTICES) {
-        SDL_SetError("Too many points for draw");
-        return -1;
-    }
-    if ((data->vertices_current_offset + VERTICES_FOR_QUAD * count) > GLES2_MAX_VERTICES)
-        GLES2_FlushVertices(renderer);
-
-    vertex_index = data->vertices_current_offset;
-    GLES2_CheckAndAddNewCommand(renderer, NULL, renderer->blendMode, GL_TRIANGLES, VERTICES_FOR_QUAD * count);
+    const int VERTICES_FOR_RECT = 6;
+        
     for (idx = 0; idx < count; ++idx) {
+        if (data->vertices_current_offset + VERTICES_FOR_RECT > GLES2_MAX_VERTICES) {
+            GLES2_FlushVertices(renderer);
+        }
+        GLES2_CheckAndAddNewCommand(renderer, NULL, renderer->blendMode, GL_TRIANGLES, VERTICES_FOR_RECT);
+
         const SDL_FRect *rect = &rects[idx];
          
         GLfloat xMin = rect->x;
@@ -1550,66 +1545,65 @@ GLES2_RenderFillRects(SDL_Renderer *renderer, const SDL_FRect *rects, int count)
         // 0 == 5, 1, 2 == 3, 4; 0, 1, 2; 3, 4, 5;
          
         //0
-        vertices[vertex_index].pos[0] = xMin;
-        vertices[vertex_index].pos[1] = yMin;
-        vertices[vertex_index].angle = 0.0f;
-        vertices[vertex_index].color[0] = r;
-        vertices[vertex_index].color[1] = g;
-        vertices[vertex_index].color[2] = b;
-        vertices[vertex_index].color[3] = a;
-        ++vertex_index;
+        vertices[data->vertices_current_offset].pos[0] = xMin;
+        vertices[data->vertices_current_offset].pos[1] = yMin;
+        vertices[data->vertices_current_offset].angle = 0.0f;
+        vertices[data->vertices_current_offset].color[0] = r;
+        vertices[data->vertices_current_offset].color[1] = g;
+        vertices[data->vertices_current_offset].color[2] = b;
+        vertices[data->vertices_current_offset].color[3] = a;
+        ++data->vertices_current_offset;
          
         //1
-        vertices[vertex_index].pos[0] = xMax;
-        vertices[vertex_index].pos[1] = yMin;
-        vertices[vertex_index].angle = 0.0f;
-        vertices[vertex_index].color[0] = r;
-        vertices[vertex_index].color[1] = g;
-        vertices[vertex_index].color[2] = b;
-        vertices[vertex_index].color[3] = a;
-        ++vertex_index;
+        vertices[data->vertices_current_offset].pos[0] = xMax;
+        vertices[data->vertices_current_offset].pos[1] = yMin;
+        vertices[data->vertices_current_offset].angle = 0.0f;
+        vertices[data->vertices_current_offset].color[0] = r;
+        vertices[data->vertices_current_offset].color[1] = g;
+        vertices[data->vertices_current_offset].color[2] = b;
+        vertices[data->vertices_current_offset].color[3] = a;
+        ++data->vertices_current_offset;
          
         //2
-        vertices[vertex_index].pos[0] = xMax;
-        vertices[vertex_index].pos[1] = yMax;
-        vertices[vertex_index].angle = 0.0f;
-        vertices[vertex_index].color[0] = r;
-        vertices[vertex_index].color[1] = g;
-        vertices[vertex_index].color[2] = b;
-        vertices[vertex_index].color[3] = a;
-        ++vertex_index;
+        vertices[data->vertices_current_offset].pos[0] = xMax;
+        vertices[data->vertices_current_offset].pos[1] = yMax;
+        vertices[data->vertices_current_offset].angle = 0.0f;
+        vertices[data->vertices_current_offset].color[0] = r;
+        vertices[data->vertices_current_offset].color[1] = g;
+        vertices[data->vertices_current_offset].color[2] = b;
+        vertices[data->vertices_current_offset].color[3] = a;
+        ++data->vertices_current_offset;
          
         //3
-        vertices[vertex_index].pos[0] = xMax;
-        vertices[vertex_index].pos[1] = yMax;
-        vertices[vertex_index].angle = 0.0f;
-        vertices[vertex_index].color[0] = r;
-        vertices[vertex_index].color[1] = g;
-        vertices[vertex_index].color[2] = b;
-        vertices[vertex_index].color[3] = a;
-        ++vertex_index;
+        vertices[data->vertices_current_offset].pos[0] = xMax;
+        vertices[data->vertices_current_offset].pos[1] = yMax;
+        vertices[data->vertices_current_offset].angle = 0.0f;
+        vertices[data->vertices_current_offset].color[0] = r;
+        vertices[data->vertices_current_offset].color[1] = g;
+        vertices[data->vertices_current_offset].color[2] = b;
+        vertices[data->vertices_current_offset].color[3] = a;
+        ++data->vertices_current_offset;
          
         //4
-        vertices[vertex_index].pos[0] = xMin;
-        vertices[vertex_index].pos[1] = yMax;
-        vertices[vertex_index].angle = 0.0f;
-        vertices[vertex_index].color[0] = r;
-        vertices[vertex_index].color[1] = g;
-        vertices[vertex_index].color[2] = b;
-        vertices[vertex_index].color[3] = a;
-        ++vertex_index;
+        vertices[data->vertices_current_offset].pos[0] = xMin;
+        vertices[data->vertices_current_offset].pos[1] = yMax;
+        vertices[data->vertices_current_offset].angle = 0.0f;
+        vertices[data->vertices_current_offset].color[0] = r;
+        vertices[data->vertices_current_offset].color[1] = g;
+        vertices[data->vertices_current_offset].color[2] = b;
+        vertices[data->vertices_current_offset].color[3] = a;
+        ++data->vertices_current_offset;
          
         //5
-        vertices[vertex_index].pos[0] = xMin;
-        vertices[vertex_index].pos[1] = yMin;
-        vertices[vertex_index].angle = 0.0f;
-        vertices[vertex_index].color[0] = r;
-        vertices[vertex_index].color[1] = g;
-        vertices[vertex_index].color[2] = b;
-        vertices[vertex_index].color[3] = a;
-        ++vertex_index;
+        vertices[data->vertices_current_offset].pos[0] = xMin;
+        vertices[data->vertices_current_offset].pos[1] = yMin;
+        vertices[data->vertices_current_offset].angle = 0.0f;
+        vertices[data->vertices_current_offset].color[0] = r;
+        vertices[data->vertices_current_offset].color[1] = g;
+        vertices[data->vertices_current_offset].color[2] = b;
+        vertices[data->vertices_current_offset].color[3] = a;
+        ++data->vertices_current_offset;
     }
-    data->vertices_current_offset += (VERTICES_FOR_QUAD * count);
 
     return GL_CheckError("", renderer);
 }
