@@ -179,10 +179,10 @@ typedef struct Vertex
 } Vertex;
 
 #ifndef MAX_VERTICES_COUNT
-#define MAX_VERTICES_COUNT 12000
+#define MAX_VERTICES_COUNT 3600
 #endif
 
-#define GLES2_VERTEX_MAX_VERTICES MAX_VERTICES_COUNT
+#define GLES2_MAX_VERTICES MAX_VERTICES_COUNT
 
 typedef struct DrawCommand
 {
@@ -1443,37 +1443,35 @@ GLES2_RenderDrawPoints(SDL_Renderer *renderer, const SDL_FPoint *points, int cou
 {
     GLES2_DriverContext *data = (GLES2_DriverContext *)renderer->driverdata;
     Vertex *vertices = data->vertices;
-    int vertex_index;
     int idx;
     GLfloat r = renderer->r * inv255f;
     GLfloat g = renderer->g * inv255f;
     GLfloat b = renderer->b * inv255f;
     GLfloat a = renderer->a * inv255f;
+    const int VERTICES_FOR_POINT = 1;
 
-    //TODO: make loop and draw by parts
-    if (count > GLES2_VERTEX_MAX_VERTICES) {
-        SDL_SetError("Too many points for draw");
-        return -1;
-    }
-    if (data->vertices_current_offset + count > GLES2_VERTEX_MAX_VERTICES)
+    if (data->vertices_current_offset + count * VERTICES_FOR_POINT > GLES2_MAX_VERTICES)
         GLES2_FlushVertices(renderer);
 
-    GLES2_CheckAndAddNewCommand(renderer, NULL, renderer->blendMode, GL_POINTS, count);
-    vertex_index = data->vertices_current_offset;
+    GLES2_CheckAndAddNewCommand(renderer, NULL, renderer->blendMode, GL_POINTS, (count > GLES2_MAX_VERTICES) ? GLES2_MAX_VERTICES : count);
     for (idx = 0; idx < count; ++idx) {
+        if (data->vertices_current_offset + VERTICES_FOR_POINT > GLES2_MAX_VERTICES) {
+            int new_count = count - idx;
+            GLES2_FlushVertices(renderer);            
+            GLES2_CheckAndAddNewCommand(renderer, NULL, renderer->blendMode, GL_POINTS, (new_count > GLES2_MAX_VERTICES) ? GLES2_MAX_VERTICES : new_count);
+        }
         GLfloat x = points[idx].x + 0.5f;
         GLfloat y = points[idx].y + 0.5f;
 
-        vertices[vertex_index].pos[0] = x;
-        vertices[vertex_index].pos[1] = y;
-        vertices[vertex_index].angle = 0.0f;
-        vertices[vertex_index].color[0] = r;
-        vertices[vertex_index].color[1] = g;
-        vertices[vertex_index].color[2] = b;
-        vertices[vertex_index].color[3] = a;
-        ++vertex_index;
+        vertices[data->vertices_current_offset].pos[0] = x;
+        vertices[data->vertices_current_offset].pos[1] = y;
+        vertices[data->vertices_current_offset].angle = 0.0f;
+        vertices[data->vertices_current_offset].color[0] = r;
+        vertices[data->vertices_current_offset].color[1] = g;
+        vertices[data->vertices_current_offset].color[2] = b;
+        vertices[data->vertices_current_offset].color[3] = a;
+        ++data->vertices_current_offset;
     }
-    data->vertices_current_offset += count;
 
     return GL_CheckError("", renderer);
 }
@@ -1491,11 +1489,11 @@ GLES2_RenderDrawLines(SDL_Renderer *renderer, const SDL_FPoint *points, int coun
     GLfloat a = renderer->a * inv255f;
     const int VERTICES_FOR_LINES = 2 * (count - 1);
     //TODO: make loop and draw by parts
-    if (VERTICES_FOR_LINES > GLES2_VERTEX_MAX_VERTICES) {
+    if (VERTICES_FOR_LINES > GLES2_MAX_VERTICES) {
         SDL_SetError("Too many points for draw");
         return -1;
     }
-    if (data->vertices_current_offset + VERTICES_FOR_LINES > GLES2_VERTEX_MAX_VERTICES)
+    if (data->vertices_current_offset + VERTICES_FOR_LINES > GLES2_MAX_VERTICES)
         GLES2_FlushVertices(renderer);
 
     vertex_index = data->vertices_current_offset;
@@ -1549,11 +1547,11 @@ GLES2_RenderFillRects(SDL_Renderer *renderer, const SDL_FRect *rects, int count)
     GLfloat a = renderer->a * inv255f;
     const int VERTICES_FOR_QUAD = 6;
     //TODO: make loop and draw by parts
-    if (VERTICES_FOR_QUAD * count > GLES2_VERTEX_MAX_VERTICES) {
+    if (VERTICES_FOR_QUAD * count > GLES2_MAX_VERTICES) {
         SDL_SetError("Too many points for draw");
         return -1;
     }
-    if ((data->vertices_current_offset + VERTICES_FOR_QUAD * count) > GLES2_VERTEX_MAX_VERTICES)
+    if ((data->vertices_current_offset + VERTICES_FOR_QUAD * count) > GLES2_MAX_VERTICES)
         GLES2_FlushVertices(renderer);
 
     vertex_index = data->vertices_current_offset;
@@ -1809,7 +1807,7 @@ GLES2_RenderCopyEx(SDL_Renderer *renderer, SDL_Texture *texture, const SDL_Rect 
 
     vertices = data->vertices;
 
-    if (data->vertices_current_offset + 6 > GLES2_VERTEX_MAX_VERTICES)
+    if (data->vertices_current_offset + 6 > GLES2_MAX_VERTICES)
         GLES2_FlushVertices(renderer);
 
     texture_data->in_batch = SDL_TRUE;
@@ -2183,7 +2181,7 @@ GLES2_CreateRenderer(SDL_Window *window, Uint32 flags)
     data->glGetIntegerv(GL_FRAMEBUFFER_BINDING, &window_framebuffer);
     data->window_framebuffer = (GLuint)window_framebuffer;
 
-    data->vertices = SDL_malloc(sizeof(Vertex) * GLES2_VERTEX_MAX_VERTICES);
+    data->vertices = SDL_malloc(sizeof(Vertex) * GLES2_MAX_VERTICES);
     if (!data->vertices)
     {
         GLES2_DestroyRenderer(renderer);
@@ -2191,7 +2189,7 @@ GLES2_CreateRenderer(SDL_Window *window, Uint32 flags)
         goto error;
     }
 
-    data->draw_commands = SDL_calloc(GLES2_VERTEX_MAX_VERTICES, sizeof(DrawCommand));
+    data->draw_commands = SDL_calloc(GLES2_MAX_VERTICES, sizeof(DrawCommand));
     if (!data->draw_commands)
     {
         GLES2_DestroyRenderer(renderer);
@@ -2204,7 +2202,7 @@ GLES2_CreateRenderer(SDL_Window *window, Uint32 flags)
     if (!data->VBO) {
         data->glGenBuffers(1, &data->VBO);
         data->glBindBuffer(GL_ARRAY_BUFFER, data->VBO);
-        data->glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * GLES2_VERTEX_MAX_VERTICES, data->vertices, GL_STREAM_DRAW);
+        data->glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * GLES2_MAX_VERTICES, data->vertices, GL_STREAM_DRAW);
         data->glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 #endif

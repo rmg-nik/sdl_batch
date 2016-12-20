@@ -121,6 +121,8 @@ void InitVideo()
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
         ProgramDie("Cannon init video");
 
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+
     window = SDL_CreateWindow("TEST", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_W, WINDOW_H, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
     if (!window)
         ProgramDie();
@@ -145,8 +147,8 @@ void InitData()
     //texture_atlas = new Texture("awesomeface_atlas.bmp", renderer, 2, 1);
     texture_atlas = texture;
 
-    int w = texture_atlas->GetWidth() / 4;
-    int h = texture_atlas->GetHeight() / 4;
+    int w = texture_atlas->GetWidth() / 10;
+    int h = texture_atlas->GetHeight() / 10;
     int iCount = WINDOW_H / h;
     int jCount = WINDOW_W / w;
     int x = 10;
@@ -178,9 +180,9 @@ void InitData()
             local_dst->h = h;
 
             *local_angles = 0.0f;
+            *local_color = { 255, 255, 255, 255 };
             //*local_angles = (float)(rand() % 360);
             //*local_color = { Uint8(rand() % 255), Uint8(rand() % 255), Uint8(rand() % 255), Uint8(rand() % 255) };
-            *local_color = { 255, 255, 255, 255 };
             point->x = x;
             point->y = y;
 
