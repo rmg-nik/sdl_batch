@@ -1,7 +1,3 @@
-#ifndef MAX_VERTICES_COUNT
-#define MAX_VERTICES_COUNT 6 * 2048
-#endif
-
 /*
   Simple DirectMedia Layer
   Copyright (C) 1997-2016 Sam Lantinga <slouken@libsdl.org>

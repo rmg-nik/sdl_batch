@@ -1443,7 +1443,7 @@ GLES2_RenderDrawPoints(SDL_Renderer *renderer, const SDL_FPoint *points, int cou
 {
     GLES2_DriverContext *data = (GLES2_DriverContext *)renderer->driverdata;
     Vertex *vertices = data->vertices;
-    int vertex_index = data->vertices_current_offset;
+    int vertex_index;
     int idx;
     GLfloat r = renderer->r * inv255f;
     GLfloat g = renderer->g * inv255f;
@@ -1459,6 +1459,7 @@ GLES2_RenderDrawPoints(SDL_Renderer *renderer, const SDL_FPoint *points, int cou
         GLES2_FlushVertices(renderer);
 
     GLES2_CheckAndAddNewCommand(renderer, NULL, renderer->blendMode, GL_POINTS, count);
+    vertex_index = data->vertices_current_offset;
     for (idx = 0; idx < count; ++idx) {
         GLfloat x = points[idx].x + 0.5f;
         GLfloat y = points[idx].y + 0.5f;
@@ -1482,7 +1483,7 @@ GLES2_RenderDrawLines(SDL_Renderer *renderer, const SDL_FPoint *points, int coun
 {
     GLES2_DriverContext *data = (GLES2_DriverContext *)renderer->driverdata;
     Vertex *vertices = data->vertices;
-    int vertex_index = data->vertices_current_offset;
+    int vertex_index;
     int idx;
     GLfloat r = renderer->r * inv255f;
     GLfloat g = renderer->g * inv255f;
@@ -1497,6 +1498,7 @@ GLES2_RenderDrawLines(SDL_Renderer *renderer, const SDL_FPoint *points, int coun
     if (data->vertices_current_offset + VERTICES_FOR_LINES > GLES2_VERTEX_MAX_VERTICES)
         GLES2_FlushVertices(renderer);
 
+    vertex_index = data->vertices_current_offset;
     //Rewrite for using GL_LINES (GL_LINE_STRIP is not suitable for batching)
     GLES2_CheckAndAddNewCommand(renderer, NULL, renderer->blendMode, GL_LINES, VERTICES_FOR_LINES);
     for (idx = 0; idx < count - 1; ++idx) {
@@ -1539,7 +1541,7 @@ GLES2_RenderFillRects(SDL_Renderer *renderer, const SDL_FRect *rects, int count)
 {
     GLES2_DriverContext *data = (GLES2_DriverContext *)renderer->driverdata;
     Vertex *vertices = data->vertices;
-    int vertex_index = data->vertices_current_offset;
+    int vertex_index;
     int idx;
     GLfloat r = renderer->r * inv255f;
     GLfloat g = renderer->g * inv255f;
@@ -1554,6 +1556,7 @@ GLES2_RenderFillRects(SDL_Renderer *renderer, const SDL_FRect *rects, int count)
     if ((data->vertices_current_offset + VERTICES_FOR_QUAD * count) > GLES2_VERTEX_MAX_VERTICES)
         GLES2_FlushVertices(renderer);
 
+    vertex_index = data->vertices_current_offset;
     GLES2_CheckAndAddNewCommand(renderer, NULL, renderer->blendMode, GL_TRIANGLES, VERTICES_FOR_QUAD * count);
     for (idx = 0; idx < count; ++idx) {
         const SDL_FRect *rect = &rects[idx];
